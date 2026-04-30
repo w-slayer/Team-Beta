@@ -1,0 +1,647 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2869
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fnil\fcharset0 HelveticaNeue-Bold;\f1\fnil\fcharset0 HelveticaNeue;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\deftab720
+\pard\pardeftab720\partightenfactor0
+
+\f0\b\fs22 \cf2 TAG'D DESIGN LEVEL CLASS DIAG. - METHOD PSEUDOCODE\
+Classes: User, Moderator, GameTitle, Achievement, PlatformAccount, List, Favorites, Review, ForumPost, GameRequestForm\
+----------------------------------------------------------------\
+CLASS  User\
+----------------------------------------------------------------\
+\pard\pardeftab720\partightenfactor0
+
+\f1\b0 \cf2 \
+createAccount(username, email, password)\
+\
+    VALIDATE username is not empty\
+\
+    VALIDATE email is valid format\
+\
+    VALIDATE password length >= 8\
+\
+\
+    userID        = new auto-generated int\
+\
+    this.username = username\
+\
+    this.email    = email\
+\
+    this.password = hashPassword(password)\
+\
+    profileDesc   = ""\
+\
+    isPublic      = true\
+\
+\
+login(email, password)\
+\
+    IF email is empty OR password is empty -> throw error\
+\
+\
+    user = look up user by email\
+\
+    IF user not found -> return false\
+\
+    IF hashPassword(password) does not match stored hash -> return false\
+\
+\
+    create session token for user\
+\
+    RETURN true\
+\
+\
+logout()\
+\
+    IF no active session -> return\
+\
+    invalidate current session token\
+\
+    clear session data\
+\
+    RETURN\
+\
+\
+customizeProfile(profileDesc, isPublic)\
+\
+    IF profileDesc is null -> throw error\
+\
+    IF isPublic is null -> throw error\
+\
+\
+    this.profileDesc = profileDesc\
+\
+    this.isPublic    = isPublic\
+\
+    save changes to database\
+\
+    RETURN\
+\
+\
+deleteAccount()\
+\
+    delete all Reviews authored by this user\
+\
+    delete all ForumPosts authored by this user\
+\
+    delete all Lists owned by this user\
+\
+    delete associated Favorites record\
+\
+    delete all linked PlatformAccounts\
+\
+    delete this User record from database\
+\
+    RETURN\
+\
+\
+\pard\pardeftab720\partightenfactor0
+
+\f0\b \cf2 ----------------------------------------------------------------\
+CLASS  Moderator\
+----------------------------------------------------------------\
+\pard\pardeftab720\partightenfactor0
+
+\f1\b0 \cf2 \
+reviewContent()\
+\
+    fetch all flagged Reviews and ForumPosts from database\
+\
+    IF queue is empty -> return\
+\
+    display each flagged item for moderator review\
+\
+    RETURN\
+\
+\
+approveRequest(formID)\
+\
+    IF formID is null -> throw error\
+\
+\
+    form = look up GameRequestForm by formID\
+\
+    IF form not found -> throw error\
+\
+    IF form.status is not "Submitted" -> throw error\
+\
+\
+    form.status = "Approved"\
+\
+    create new GameTitle using form.gameTitle, form.developer, form.genre\
+\
+    save new GameTitle to database\
+\
+    save form changes to database\
+\
+    RETURN\
+\
+\
+removePost(postID)\
+\
+    IF postID is null -> throw error\
+\
+\
+    post = look up ForumPost or Review by postID\
+\
+    IF post not found -> throw error\
+\
+\
+    delete post from database\
+\
+    notify post author of removal\
+\
+    RETURN\
+\
+\
+\pard\pardeftab720\partightenfactor0
+
+\f0\b \cf2 ----------------------------------------------------------------\
+CLASS  GameTitle\
+----------------------------------------------------------------\
+\pard\pardeftab720\partightenfactor0
+
+\f1\b0 \cf2 \
+getAverageRating()\
+\
+    reviews = fetch all Reviews where gameID = this.gameID\
+\
+    IF reviews is empty -> RETURN 0.0\
+\
+\
+    sum = 0\
+\
+    FOR each review in reviews\
+\
+        sum = sum + review.rating\
+\
+\
+    RETURN sum / count(reviews)\
+\
+\
+getReviews()\
+\
+    reviews = query database for Reviews where gameID = this.gameID\
+\
+    RETURN reviews\
+\
+\
+getForumPosts()\
+\
+    posts = query database for ForumPosts where gameID = this.gameID\
+\
+    RETURN posts\
+\
+\
+update(title, developer)\
+\
+    IF title is empty -> throw error\
+\
+    IF developer is empty -> throw error\
+\
+\
+    this.title     = title\
+\
+    this.developer = developer\
+\
+    save changes to database\
+\
+    RETURN\
+\
+\
+deleteGame()\
+\
+    delete all Reviews for this gameID\
+\
+    delete all ForumPosts for this gameID\
+\
+    remove this game from all Lists and Favorites\
+\
+    delete this GameTitle record from database\
+\
+    RETURN\
+\
+\
+\pard\pardeftab720\partightenfactor0
+
+\f0\b \cf2 ----------------------------------------------------------------\
+CLASS  Achievement\
+----------------------------------------------------------------\
+\pard\pardeftab720\partightenfactor0
+
+\f1\b0 \cf2 \
+display()\
+\
+    load achievement details from database using achievementID\
+\
+    IF achievement not found -> throw error\
+\
+    RETURN this Achievement\
+\
+\
+\pard\pardeftab720\partightenfactor0
+
+\f0\b \cf2 ----------------------------------------------------------------\
+CLASS  PlatformAccount\
+----------------------------------------------------------------\
+\pard\pardeftab720\partightenfactor0
+
+\f1\b0 \cf2 \
+link(platformUsername, platform)\
+\
+    IF platformUsername is empty -> throw error\
+\
+    IF platform is empty -> throw error\
+\
+\
+    send authentication request to platform API\
+\
+    IF authentication fails -> RETURN false\
+\
+\
+    this.platformUsername = platformUsername\
+\
+    this.platform         = platform\
+\
+    save new PlatformAccount record to database\
+\
+    RETURN true\
+\
+\
+unlink()\
+\
+    IF no linked account exists -> return\
+\
+\
+    revoke platform API access token\
+\
+    delete this PlatformAccount record from database\
+\
+    RETURN\
+\
+\
+syncAchievements()\
+\
+    IF this.platformUsername is empty -> throw error\
+\
+\
+    rawAchievements = call platform API to fetch achievements for platformUsername\
+\
+    IF API call fails -> throw error\
+\
+\
+    FOR each achievement in rawAchievements\
+\
+        IF achievement not already in local database\
+\
+            create new Achievement record\
+\
+            save to database\
+\
+\
+    RETURN Achievement[]\
+\
+\
+\pard\pardeftab720\partightenfactor0
+
+\f0\b \cf2 ----------------------------------------------------------------\
+CLASS  List\
+----------------------------------------------------------------\
+\pard\pardeftab720\partightenfactor0
+
+\f1\b0 \cf2 \
+create(title)\
+\
+    IF title is empty -> throw error\
+\
+\
+    listID       = new auto-generated int\
+\
+    this.title   = title\
+\
+    this.isPublic = false\
+\
+    save new List record to database\
+\
+    RETURN\
+\
+\
+addGame(gameID)\
+\
+    IF gameID is null -> throw error\
+\
+\
+    game = look up GameTitle by gameID\
+\
+    IF game not found -> throw error\
+\
+    IF gameID already in this list -> return (no-op)\
+\
+\
+    add gameID to this list\
+\
+    save changes to database\
+\
+    RETURN\
+\
+\
+removeGame(gameID)\
+\
+    IF gameID is null -> throw error\
+\
+\
+    IF gameID not in this list -> return (no-op)\
+\
+    remove gameID from this list\
+\
+    save changes to database\
+\
+    RETURN\
+\
+\
+delete()\
+\
+    remove all game references from this list\
+\
+    delete this List record from database\
+\
+    RETURN\
+\
+\
+getList()\
+\
+    games = query database for all GameTitles referenced in this list\
+\
+    RETURN games\
+\
+\
+\pard\pardeftab720\partightenfactor0
+
+\f0\b \cf2 ----------------------------------------------------------------\
+CLASS  Favorites\
+----------------------------------------------------------------\
+\pard\pardeftab720\partightenfactor0
+
+\f1\b0 \cf2 \
+addFavorite(gameID)\
+\
+    IF gameID is null -> throw error\
+\
+\
+    IF count(favorites) >= maxGames -> throw error\
+\
+\
+    game = look up GameTitle by gameID\
+\
+    IF game not found -> throw error\
+\
+    IF gameID already in favorites -> return (no-op)\
+\
+\
+    add gameID to favorites\
+\
+    save changes to database\
+\
+    RETURN\
+\
+\
+removeFavorite(gameID)\
+\
+    IF gameID is null -> throw error\
+\
+\
+    IF gameID not in favorites -> return (no-op)\
+\
+    remove gameID from favorites\
+\
+    save changes to database\
+\
+    RETURN\
+\
+\
+togglePublic()\
+\
+    this.isPublic = NOT this.isPublic\
+\
+    save changes to database\
+\
+    RETURN\
+\
+\
+getFavorites()\
+\
+    games = query database for all GameTitles referenced in favorites\
+\
+    RETURN games\
+\
+\
+\pard\pardeftab720\partightenfactor0
+
+\f0\b \cf2 ----------------------------------------------------------------\
+CLASS  Review\
+----------------------------------------------------------------\
+\pard\pardeftab720\partightenfactor0
+
+\f1\b0 \cf2 \
+post(gameID, rating, reviewText)\
+\
+    IF gameID is null -> throw error\
+\
+    IF rating < 0.0 OR rating > 5.0 -> throw error\
+\
+    IF reviewText is empty -> throw error\
+\
+\
+    reviewID        = new auto-generated int\
+\
+    this.gameID     = gameID\
+\
+    this.rating     = rating\
+\
+    this.reviewText = reviewText\
+\
+    this.datePosted = now()\
+\
+    save new Review record to database\
+\
+    update GameTitle.overallRating via getAverageRating()\
+\
+    RETURN\
+\
+\
+update(rating, reviewText)\
+\
+    IF rating < 0.0 OR rating > 5.0 -> throw error\
+\
+    IF reviewText is empty -> throw error\
+\
+\
+    this.rating     = rating\
+\
+    this.reviewText = reviewText\
+\
+    save changes to database\
+\
+    update GameTitle.overallRating via getAverageRating()\
+\
+    RETURN\
+\
+\
+delete()\
+\
+    delete this Review record from database\
+\
+    update GameTitle.overallRating via getAverageRating()\
+\
+    RETURN\
+\
+\
+flag()\
+\
+    set review status to "Flagged"\
+\
+    add this review to moderator content queue\
+\
+    save changes to database\
+\
+    RETURN\
+\
+\
+\pard\pardeftab720\partightenfactor0
+
+\f0\b \cf2 ----------------------------------------------------------------\
+CLASS  ForumPost\
+----------------------------------------------------------------\
+\pard\pardeftab720\partightenfactor0
+
+\f1\b0 \cf2 \
+post(gameID, content, imageURL, subforum)\
+\
+    IF gameID is null -> throw error\
+\
+    IF content is empty -> throw error\
+\
+    IF subforum is empty -> throw error\
+\
+\
+    postID         = new auto-generated int\
+\
+    this.gameID    = gameID\
+\
+    this.content   = content\
+\
+    this.imageURL  = imageURL (default "")\
+\
+    this.subforum  = subforum\
+\
+    this.datePosted = now()\
+\
+    save new ForumPost record to database\
+\
+    RETURN\
+\
+\
+delete()\
+\
+    delete this ForumPost record from database\
+\
+    RETURN\
+\
+\
+flag()\
+\
+    set post status to "Flagged"\
+\
+    add this post to moderator content queue\
+\
+    save changes to database\
+\
+    RETURN\
+\
+\
+update(content, imageURL)\
+\
+    IF content is empty -> throw error\
+\
+\
+    this.content  = content\
+\
+    this.imageURL = imageURL\
+\
+    save changes to database\
+\
+    RETURN\
+\
+\
+\pard\pardeftab720\partightenfactor0
+
+\f0\b \cf2 ----------------------------------------------------------------\
+CLASS  GameRequestForm\
+----------------------------------------------------------------\
+\pard\pardeftab720\partightenfactor0
+
+\f1\b0 \cf2 \
+submit(gameTitle, developer, genre)\
+\
+    IF gameTitle is empty -> throw error\
+\
+    IF developer is empty -> throw error\
+\
+    IF genre is empty -> throw error\
+\
+\
+    existing = look up GameTitle by gameTitle name\
+\
+    IF existing found -> throw error (duplicate)\
+\
+\
+    formID         = new auto-generated int\
+\
+    this.gameTitle = gameTitle\
+\
+    this.developer = developer\
+\
+    this.genre     = genre\
+\
+    this.status    = "Submitted"\
+\
+    save new GameRequestForm record to database\
+\
+    RETURN\
+\
+\
+approve()\
+\
+    IF this.status is not "Submitted" -> throw error\
+\
+\
+    this.status = "Approved"\
+\
+    create new GameTitle using this.gameTitle, this.developer, this.genre\
+\
+    save new GameTitle to database\
+\
+    save form changes to database\
+\
+    RETURN\
+\
+\
+deny()\
+\
+    IF this.status is not "Submitted" -> throw error\
+\
+\
+    this.status = "Denied"\
+\
+    save changes to database\
+\
+    RETURN\
+\
+\
+\pard\pardeftab720\partightenfactor0
+
+\f0\b \cf2 ================================================================\
+END OF PSEUDOCODE\
+================================================================}
